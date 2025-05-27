@@ -217,8 +217,7 @@ const ImageAligner = forwardRef(function ImageAligner(
           mat1 = cv.matFromImageData({ data: img1Array, width: img1Width, height: img1Height });
           mat2 = cv.matFromImageData({ data: img2Array, width: img2Width, height: img2Height });
     
-          gray1 = new cv.Mat();
-          gray2 = new cv.Mat();
+          gray1 = new cv.Mat(); gray2 = new cv.Mat();
           cv.cvtColor(mat1, gray1, cv.COLOR_RGBA2GRAY);
           cv.cvtColor(mat2, gray2, cv.COLOR_RGBA2GRAY);
     
@@ -248,7 +247,6 @@ const ImageAligner = forwardRef(function ImageAligner(
             const pts1Mat = cv.matFromArray(pts1.length / 2, 1, cv.CV_32FC2, pts1);
             const pts2Mat = cv.matFromArray(pts2.length / 2, 1, cv.CV_32FC2, pts2);
             homography = cv.findHomography(pts2Mat, pts1Mat, cv.RANSAC);
-    
             aligned = new cv.Mat();
             cv.warpPerspective(mat2, aligned, homography, new cv.Size(mat1.cols, mat1.rows));
           } else {
@@ -299,7 +297,9 @@ const ImageAligner = forwardRef(function ImageAligner(
             }
           }
     
-          if (!fallback) cv.bitwise_and(mask_filtered, mask_overlap, mask_filtered);
+          if (!fallback) {
+            cv.bitwise_and(mask_filtered, mask_overlap, mask_filtered);
+          }
     
           highlight = img1_crop.clone();
           for (let r = 0; r < highlight.rows; r++) {
