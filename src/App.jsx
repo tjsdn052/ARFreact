@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import BuildingList from "./pages/BuildingList";
 import CrackDetail from "./pages/CrackDetail";
+import NotFound from "./pages/NotFound";
 import Sidebar from "./components/Sidebar";
 import "./App.css";
 
@@ -24,8 +25,8 @@ function App() {
               path="/buildings/add"
               element={<div>건물 추가 페이지</div>}
             />
-
             <Route path="/building/:id" element={<CrackDetail />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </div>

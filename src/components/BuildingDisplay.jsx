@@ -136,7 +136,7 @@ function BuildingDisplayComponent({ buildingId }) {
   return (
     <div className={styles.container}>
       <div className={styles.displayBox}>
-        <span>{loading ? "로딩 중..." : buildingName}</span>
+        <span>{loading ? "" : buildingName}</span>
       </div>
     </div>
   );

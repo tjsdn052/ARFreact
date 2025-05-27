@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       "/api": {
         target: "http://3.37.127.247:8080",
+        // target: "https://afk-mock.onrender.com",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },

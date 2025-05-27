@@ -301,7 +301,7 @@ export default function KakaoMapCard({ buildingId, buildingData }) {
     return (
       <div className={styles.card}>
         <div className={styles.mapPlaceholder}>
-          <div className={styles.loading}>지도 로딩 중...</div>
+          {/* 로딩 중일 때는 빈 화면 표시 */}
         </div>
       </div>
     );

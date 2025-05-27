@@ -2,10 +2,18 @@
   publish = "dist"
   command = "npm run build"
 
+[functions]
+  directory = "netlify/functions"
+
+[dev]
+  functions = "netlify/functions"
+  publish = "dist"
+
 # API 프록시
 [[redirects]]
   from = "/api/*"
   to = "http://3.37.127.247:8080/:splat"
+  #to = "https://afk-mock.onrender.com/:splat"
   status = 200
   force = true
 

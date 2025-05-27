@@ -178,9 +178,7 @@ function KeyMetricCard({ buildingId, buildingData: propsBuildingData }) {
 
   if (loading) {
     return (
-      <div className={styles.card}>
-        <div className={styles.loading}>데이터 로딩 중...</div>
-      </div>
+      <div className={styles.card}>{/* 로딩 중일 때는 빈 화면 표시 */}</div>
     );
   }
 

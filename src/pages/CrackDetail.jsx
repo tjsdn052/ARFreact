@@ -57,7 +57,7 @@ function CrackDetail() {
     return (
       <div className={styles.container}>
         <div className={styles.contentContainer}>
-          <div className={styles.loading}>로딩 중...</div>
+          {/* 로딩 중일 때는 빈 화면 표시 */}
         </div>
       </div>
     );

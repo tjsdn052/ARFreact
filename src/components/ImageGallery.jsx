@@ -72,7 +72,7 @@ export default function ImageGallery({
     if (loading) {
       return (
         <div className={styles.loading}>
-          <p>균열 이미지 로딩 중...</p>
+          {/* 로딩 중일 때는 빈 화면 표시 */}
         </div>
       );
     }

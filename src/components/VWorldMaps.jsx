@@ -50,6 +50,9 @@ export default function VWorldMaps({
   // 웨이포인트 이름 상태 추가
   const [selectedWaypointName, setSelectedWaypointName] = useState("");
 
+  // Google Elevation API 고도값에서 빼는 값 (한번에 변경 가능)
+  const ELEVATION_OFFSET = 5; // 기본값 5m
+
   // 웨이포인트가 변경되면 state도 업데이트 (단, 내부 선택 후에는 적용하지 않음)
   useEffect(() => {
     if (waypointId !== undefined && waypointId !== null) {
@@ -73,34 +76,55 @@ export default function VWorldMaps({
           if (waypoint && waypoint.location) {
             const waypointAltitude = waypoint.location.altitude || 10;
 
-            try {
-              console.log(`초기 마운트: 카메라 이동 시도: ${idStr}`);
+            const moveInitialCamera = async () => {
+              try {
+                console.log(`초기 마운트: 카메라 이동 시도: ${idStr}`);
 
-              const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
-                waypoint.location.longitude,
-                waypoint.location.latitude,
-                waypointAltitude + 20 // 웨이포인트 위치보다 20m 위에서 보기
-              );
+                // Google Elevation API로 지형 고도 가져오기
+                const googleElevation = await getElevationFromGoogle(
+                  waypoint.location.latitude,
+                  waypoint.location.longitude
+                );
 
-              cesiumViewerRef.current.camera.flyTo({
-                destination: cameraPosition,
-                orientation: {
-                  heading: window.Cesium.Math.toRadians(0),
-                  pitch: window.Cesium.Math.toRadians(-90), // 90도 아래로 기울여서 보기 (직각)
-                  roll: 0,
-                },
-                duration: 1.0, // 부드러운 이동을 위한 1초 지속 시간
-              });
+                const finalCameraHeight =
+                  waypointAltitude + googleElevation - ELEVATION_OFFSET + 20;
 
-              // 웨이포인트 이름도 업데이트
-              setSelectedWaypointName(
-                waypoint.label || `웨이포인트 ${waypoint.id}`
-              );
+                console.log(
+                  `초기 마운트 카메라 고도 계산: ${waypointAltitude}m + ${googleElevation.toFixed(
+                    2
+                  )}m - ${ELEVATION_OFFSET}m + 20m = ${finalCameraHeight.toFixed(
+                    2
+                  )}m`
+                );
 
-              console.log(`초기 마운트: 카메라 이동 완료: ${idStr}`);
-            } catch (e) {
-              console.error("초기 카메라 이동 중 오류:", e);
-            }
+                const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
+                  waypoint.location.longitude,
+                  waypoint.location.latitude,
+                  finalCameraHeight
+                );
+
+                cesiumViewerRef.current.camera.flyTo({
+                  destination: cameraPosition,
+                  orientation: {
+                    heading: window.Cesium.Math.toRadians(0),
+                    pitch: window.Cesium.Math.toRadians(-90), // 90도 아래로 기울여서 보기 (직각)
+                    roll: 0,
+                  },
+                  duration: 1.0, // 부드러운 이동을 위한 1초 지속 시간
+                });
+
+                // 웨이포인트 이름도 업데이트
+                setSelectedWaypointName(
+                  waypoint.label || `웨이포인트 ${waypoint.id}`
+                );
+
+                console.log(`초기 마운트: 카메라 이동 완료: ${idStr}`);
+              } catch (e) {
+                console.error("초기 카메라 이동 중 오류:", e);
+              }
+            };
+
+            moveInitialCamera();
           }
         }
       } else {
@@ -129,8 +153,45 @@ export default function VWorldMaps({
     });
   };
 
+  // Google Elevation API를 통해 고도값 가져오기
+  const getElevationFromGoogle = async (latitude, longitude) => {
+    try {
+      console.log(`고도 API 호출: 위도 ${latitude}, 경도 ${longitude}`);
+
+      const response = await fetch(
+        `/.netlify/functions/get-elevation?lat=${latitude}&lng=${longitude}`
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          `Google Elevation API HTTP 오류 ${response.status}:`,
+          errorText
+        );
+        throw new Error(
+          `HTTP error! status: ${response.status} - ${errorText}`
+        );
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.error("Google Elevation API 오류:", data.error);
+        return 10; // API 키 오류 등의 경우 기본값 10m 반환
+      }
+
+      const elevation = data.elevation || 0;
+      console.log(`Google API 고도 응답: ${elevation}m`);
+      return elevation;
+    } catch (error) {
+      console.error("Google Elevation API 호출 실패:", error);
+      console.log("기본 고도값 10m 사용");
+      return 10; // 실패 시 기본값 10m 반환 (완전히 0이면 지하에 마커가 생길 수 있음)
+    }
+  };
+
   // 마커 추가 함수 (Cesium entities.add() 사용) - waypointId 매개변수 추가
-  const addMarker = (
+  const addMarker = async (
     longitude,
     latitude,
     label = "",
@@ -146,7 +207,19 @@ export default function VWorldMaps({
 
     try {
       console.log(
-        `마커 추가 시도: ${label}, 위치: ${longitude}, ${latitude}, 색상: ${color}, 타입: ${type}, 웨이포인트ID: ${waypointId}`
+        `마커 추가 시도: ${label}, 위치: ${longitude}, ${latitude}, 기존 높이: ${height}, 타입: ${type}, 웨이포인트ID: ${waypointId}`
+      );
+
+      // Google Elevation API로 지형 고도 가져오기
+      const googleElevation = await getElevationFromGoogle(latitude, longitude);
+
+      // 기존 고도 + Google API 고도 - ELEVATION_OFFSET
+      const finalHeight = height + googleElevation - ELEVATION_OFFSET;
+
+      console.log(
+        `고도 계산: 기존 ${height}m + Google API ${googleElevation.toFixed(
+          2
+        )}m - ${ELEVATION_OFFSET}m = 최종 ${finalHeight.toFixed(2)}m`
       );
 
       const markerId = `marker-${type}-${Date.now()}-${Math.random()
@@ -158,7 +231,7 @@ export default function VWorldMaps({
         position: window.Cesium.Cartesian3.fromDegrees(
           longitude,
           latitude,
-          height
+          finalHeight
         ),
 
         label: label
@@ -179,6 +252,9 @@ export default function VWorldMaps({
         properties: {
           type: type,
           waypointId: waypointId, // 웨이포인트 ID 저장
+          originalHeight: height, // 원래 높이 저장
+          googleElevation: googleElevation, // Google API 고도 저장
+          finalHeight: finalHeight, // 최종 높이 저장
         },
       };
 
@@ -206,7 +282,9 @@ export default function VWorldMaps({
       const entity = cesiumViewerRef.current.entities.add(entityOptions);
 
       console.log(
-        `마커 추가 성공: ${markerId}, 타입: ${type}, 웨이포인트ID: ${waypointId}`
+        `마커 추가 성공: ${markerId}, 타입: ${type}, 최종 높이: ${finalHeight.toFixed(
+          2
+        )}m, 웨이포인트ID: ${waypointId}`
       );
       setMarkers((prev) => [...prev, markerId]);
       return markerId;
@@ -508,15 +586,23 @@ export default function VWorldMaps({
     ) {
       console.log("건물 마커 추가 시도:", building.name);
 
-      const markerId = addMarker(
-        building.location.longitude,
-        building.location.latitude,
-        building.name,
-        "BLUE",
-        10,
-        "building"
-      );
-      console.log("건물 마커 추가 완료:", markerId);
+      const addBuildingMarker = async () => {
+        try {
+          const markerId = await addMarker(
+            building.location.longitude,
+            building.location.latitude,
+            building.name,
+            "BLUE",
+            10,
+            "building"
+          );
+          console.log("건물 마커 추가 완료:", markerId);
+        } catch (error) {
+          console.error("건물 마커 추가 실패:", error);
+        }
+      };
+
+      addBuildingMarker();
     }
   }, [building, cesiumReady]);
 
@@ -544,130 +630,183 @@ export default function VWorldMaps({
       // 선택된 웨이포인트 좌표 저장 (나중에 포커스를 위해)
       let selectedWaypointCoords = null;
 
-      // 웨이포인트에 마커 추가
-      processedWaypoints.forEach((waypoint) => {
-        if (
-          waypoint.location &&
-          waypoint.location.latitude &&
-          waypoint.location.longitude
-        ) {
-          // 최신 균열 측정값 가져오기
-          let severity = "YELLOW";
-          let width = 0;
+      // 웨이포인트에 마커 추가 (비동기 처리)
+      const addWaypointMarkers = async () => {
+        for (const waypoint of processedWaypoints) {
+          if (
+            waypoint.location &&
+            waypoint.location.latitude &&
+            waypoint.location.longitude
+          ) {
+            // 최신 균열 측정값 가져오기
+            let severity = "YELLOW";
+            let width = 0;
 
-          if (waypoint.cracks && waypoint.cracks.length > 0) {
-            // 날짜 기준으로 정렬하여 최신 데이터 가져오기
-            const sortedCracks = [...waypoint.cracks].sort(
-              (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+            if (waypoint.cracks && waypoint.cracks.length > 0) {
+              // 날짜 기준으로 정렬하여 최신 데이터 가져오기
+              const sortedCracks = [...waypoint.cracks].sort(
+                (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+              );
+              const latestCrack = sortedCracks[0];
+
+              width = latestCrack.widthMm || 0;
+
+              // 균열 폭에 따른 심각도 결정
+              if (width >= 1.0) {
+                severity = "RED";
+              } else if (width >= 0.3) {
+                severity = "Yellow";
+              } else {
+                severity = "Green";
+              }
+            }
+            // 웨이포인트 원래 높이 사용 (높이 추가하지 않음)
+            const waypointAltitude = waypoint.location.altitude || 10;
+
+            // 마커 높이값만 로그 출력
+            console.log(
+              `마커 높이: ${waypointAltitude}m (웨이포인트 ID: ${waypoint.id})`
             );
-            const latestCrack = sortedCracks[0];
 
-            width = latestCrack.widthMm || 0;
+            // 선택된 웨이포인트인지 확인 (문자열로 변환하여 비교)
+            const isSelected =
+              selectedWaypointId &&
+              String(waypoint.id) === String(selectedWaypointId);
 
-            // 균열 폭에 따른 심각도 결정
-            if (width >= 1.0) {
-              severity = "RED";
-            } else if (width >= 0.3) {
-              severity = "Yellow";
-            } else {
-              severity = "Green";
+            // 선택된 웨이포인트이면 좌표 저장
+            if (isSelected) {
+              selectedWaypointCoords = {
+                longitude: waypoint.location.longitude,
+                latitude: waypoint.location.latitude,
+                altitude: waypointAltitude,
+              };
+              console.log(
+                `선택된 웨이포인트 좌표: ${waypoint.location.longitude}, ${waypoint.location.latitude}, ${waypointAltitude}`
+              );
+            }
+
+            try {
+              // 마커 추가 - 웨이포인트의 실제 높이 사용
+              await addMarker(
+                waypoint.location.longitude,
+                waypoint.location.latitude,
+                waypoint.label || `WP-${waypoint.id}`,
+                isSelected ? "LIME" : severity, // 선택된 웨이포인트는 LIME 색으로 표시
+                waypointAltitude,
+                "crack",
+                String(waypoint.id) // 웨이포인트 ID를 문자열로 명시적 변환
+              );
+            } catch (error) {
+              console.error(`웨이포인트 ${waypoint.id} 마커 추가 실패:`, error);
             }
           }
-          // 웨이포인트 원래 높이 사용 (높이 추가하지 않음)
-          const waypointAltitude = waypoint.location.altitude || 10;
-
-          // 마커 높이값만 로그 출력
-          console.log(
-            `마커 높이: ${waypointAltitude}m (웨이포인트 ID: ${waypoint.id})`
-          );
-
-          // 선택된 웨이포인트인지 확인 (문자열로 변환하여 비교)
-          const isSelected =
-            selectedWaypointId &&
-            String(waypoint.id) === String(selectedWaypointId);
-
-          // 선택된 웨이포인트이면 좌표 저장
-          if (isSelected) {
-            selectedWaypointCoords = {
-              longitude: waypoint.location.longitude,
-              latitude: waypoint.location.latitude,
-              altitude: waypointAltitude,
-            };
-            console.log(
-              `선택된 웨이포인트 좌표: ${waypoint.location.longitude}, ${waypoint.location.latitude}, ${waypointAltitude}`
-            );
-          }
-
-          // 마커 추가 - 웨이포인트의 실제 높이 사용
-          addMarker(
-            waypoint.location.longitude,
-            waypoint.location.latitude,
-            waypoint.label || `WP-${waypoint.id}`,
-            isSelected ? "LIME" : severity, // 선택된 웨이포인트는 LIME 색으로 표시
-            waypointAltitude,
-            "crack",
-            String(waypoint.id) // 웨이포인트 ID를 문자열로 명시적 변환
-          );
         }
-      });
+      };
+
+      // 비동기로 마커 추가 실행
+      addWaypointMarkers();
 
       // 선택된 웨이포인트가 있고 좌표가 있으면 카메라 이동
       if (selectedWaypointCoords && cesiumViewerRef.current && window.Cesium) {
-        try {
-          console.log(
-            `카메라 이동 시도: ${selectedWaypointCoords.longitude}, ${selectedWaypointCoords.latitude}, ${selectedWaypointCoords.altitude}`
-          );
+        const moveCameraToWaypoint = async () => {
+          try {
+            console.log(
+              `카메라 이동 시도: ${selectedWaypointCoords.longitude}, ${selectedWaypointCoords.latitude}, ${selectedWaypointCoords.altitude}`
+            );
 
-          // 부드러운 이동을 위해 flyTo 사용
-          const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
-            selectedWaypointCoords.longitude,
-            selectedWaypointCoords.latitude,
-            selectedWaypointCoords.altitude + 20 // 웨이포인트 위치보다 20m 위에서 보기
-          );
+            // Google Elevation API로 지형 고도 가져오기
+            const googleElevation = await getElevationFromGoogle(
+              selectedWaypointCoords.latitude,
+              selectedWaypointCoords.longitude
+            );
 
-          cesiumViewerRef.current.camera.flyTo({
-            destination: cameraPosition,
-            orientation: {
-              heading: window.Cesium.Math.toRadians(0),
-              pitch: window.Cesium.Math.toRadians(-90), // 90도 아래로 기울여서 보기 (직각)
-              roll: 0,
-            },
-            duration: 1.0, // 부드러운 이동을 위한 1초 지속 시간
-          });
+            const finalCameraHeight =
+              selectedWaypointCoords.altitude +
+              googleElevation -
+              ELEVATION_OFFSET +
+              20;
 
-          console.log(
-            `선택된 웨이포인트(${selectedWaypointId})로 카메라 이동 완료`
-          );
-        } catch (error) {
-          console.error("카메라 이동 중 오류:", error);
-        }
+            console.log(
+              `카메라 고도 계산: 웨이포인트 ${
+                selectedWaypointCoords.altitude
+              }m + Google API ${googleElevation.toFixed(
+                2
+              )}m - ${ELEVATION_OFFSET}m + 20m = ${finalCameraHeight.toFixed(
+                2
+              )}m`
+            );
+
+            // 부드러운 이동을 위해 flyTo 사용
+            const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
+              selectedWaypointCoords.longitude,
+              selectedWaypointCoords.latitude,
+              finalCameraHeight
+            );
+
+            cesiumViewerRef.current.camera.flyTo({
+              destination: cameraPosition,
+              orientation: {
+                heading: window.Cesium.Math.toRadians(0),
+                pitch: window.Cesium.Math.toRadians(-90), // 90도 아래로 기울여서 보기 (직각)
+                roll: 0,
+              },
+              duration: 1.0, // 부드러운 이동을 위한 1초 지속 시간
+            });
+
+            console.log(
+              `선택된 웨이포인트(${selectedWaypointId})로 카메라 이동 완료`
+            );
+          } catch (error) {
+            console.error("카메라 이동 중 오류:", error);
+          }
+        };
+
+        moveCameraToWaypoint();
       } else if (
         building.location &&
         cesiumViewerRef.current &&
         window.Cesium
       ) {
         // 선택된 웨이포인트가 없으면 건물 위치로 카메라 이동
-        try {
-          const buildingPosition = window.Cesium.Cartesian3.fromDegrees(
-            building.location.longitude,
-            building.location.latitude,
-            200 // 기본 높이
-          );
+        const moveCameraToBuilding = async () => {
+          try {
+            // Google Elevation API로 지형 고도 가져오기
+            const googleElevation = await getElevationFromGoogle(
+              building.location.latitude,
+              building.location.longitude
+            );
 
-          cesiumViewerRef.current.camera.flyTo({
-            destination: buildingPosition,
-            orientation: {
-              heading: window.Cesium.Math.toRadians(0),
-              pitch: window.Cesium.Math.toRadians(-90), // 90도 아래로 기울여서 보기 (직각)
-              roll: 0,
-            },
-            duration: 1.0,
-          });
+            const finalCameraHeight = 200 + googleElevation - ELEVATION_OFFSET;
 
-          console.log("건물 위치로 카메라 이동 완료");
-        } catch (error) {
-          console.error("건물 위치로 카메라 이동 중 오류:", error);
-        }
+            console.log(
+              `건물 카메라 고도 계산: 기본 200m + Google API ${googleElevation.toFixed(
+                2
+              )}m - ${ELEVATION_OFFSET}m = ${finalCameraHeight.toFixed(2)}m`
+            );
+
+            const buildingPosition = window.Cesium.Cartesian3.fromDegrees(
+              building.location.longitude,
+              building.location.latitude,
+              finalCameraHeight
+            );
+
+            cesiumViewerRef.current.camera.flyTo({
+              destination: buildingPosition,
+              orientation: {
+                heading: window.Cesium.Math.toRadians(0),
+                pitch: window.Cesium.Math.toRadians(-90), // 90도 아래로 기울여서 보기 (직각)
+                roll: 0,
+              },
+              duration: 1.0,
+            });
+
+            console.log("건물 위치로 카메라 이동 완료");
+          } catch (error) {
+            console.error("건물 위치로 카메라 이동 중 오류:", error);
+          }
+        };
+
+        moveCameraToBuilding();
       }
     }
   }, [building, cesiumReady, selectedWaypointId]);
@@ -755,30 +894,54 @@ export default function VWorldMaps({
               ) {
                 const waypointAltitude = waypoint.location.altitude || 10;
 
-                // 카메라 이동 시도
-                try {
-                  const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
-                    waypoint.location.longitude,
-                    waypoint.location.latitude,
-                    waypointAltitude + 20 // 웨이포인트 위치보다 20m 위에서 보기
-                  );
+                // 카메라 이동 시도 (비동기)
+                const moveCameraToClickedWaypoint = async () => {
+                  try {
+                    // Google Elevation API로 지형 고도 가져오기
+                    const googleElevation = await getElevationFromGoogle(
+                      waypoint.location.latitude,
+                      waypoint.location.longitude
+                    );
 
-                  cesiumViewerRef.current.camera.flyTo({
-                    destination: cameraPosition,
-                    orientation: {
-                      heading: window.Cesium.Math.toRadians(0),
-                      pitch: window.Cesium.Math.toRadians(-90), // 90도 아래로 기울여서 보기 (직각)
-                      roll: 0,
-                    },
-                    duration: 1.0, // 부드러운 이동을 위한 1초 지속 시간
-                  });
+                    const finalCameraHeight =
+                      waypointAltitude +
+                      googleElevation -
+                      ELEVATION_OFFSET +
+                      20;
 
-                  console.log(
-                    `웨이포인트로 카메라 이동 완료: ${waypointIdStr}`
-                  );
-                } catch (error) {
-                  console.error("카메라 이동 중 오류:", error);
-                }
+                    console.log(
+                      `클릭된 웨이포인트 카메라 고도 계산: ${waypointAltitude}m + ${googleElevation.toFixed(
+                        2
+                      )}m - ${ELEVATION_OFFSET}m + 20m = ${finalCameraHeight.toFixed(
+                        2
+                      )}m`
+                    );
+
+                    const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
+                      waypoint.location.longitude,
+                      waypoint.location.latitude,
+                      finalCameraHeight
+                    );
+
+                    cesiumViewerRef.current.camera.flyTo({
+                      destination: cameraPosition,
+                      orientation: {
+                        heading: window.Cesium.Math.toRadians(0),
+                        pitch: window.Cesium.Math.toRadians(-90), // 90도 아래로 기울여서 보기 (직각)
+                        roll: 0,
+                      },
+                      duration: 1.0, // 부드러운 이동을 위한 1초 지속 시간
+                    });
+
+                    console.log(
+                      `웨이포인트로 카메라 이동 완료: ${waypointIdStr}`
+                    );
+                  } catch (error) {
+                    console.error("카메라 이동 중 오류:", error);
+                  }
+                };
+
+                moveCameraToClickedWaypoint();
               }
 
               console.log(`웨이포인트 선택됨: ${waypointIdStr}`);
