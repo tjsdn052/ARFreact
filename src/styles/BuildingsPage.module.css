@@ -394,6 +394,14 @@ a:visited {
   line-height: 1;
 }
 
+.emptyCrackArea {
+  background-color: #7e41ff;
+  width: 40px;
+  height: 20px;
+  border-radius: 6px;
+  opacity: 0.7;
+}
+
 /* 로딩 및 에러 상태 */
 .loading,
 .error {

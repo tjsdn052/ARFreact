@@ -74,7 +74,7 @@ export default function VWorldMaps({
           const waypoint = cracks.find((w) => String(w.id) === idStr);
 
           if (waypoint && waypoint.location) {
-            const waypointAltitude = waypoint.location.altitude || 10;
+            const waypointAltitude = waypoint.altitude || 10;
 
             const moveInitialCamera = async () => {
               try {
@@ -660,8 +660,8 @@ export default function VWorldMaps({
                 severity = "Green";
               }
             }
-            // 웨이포인트 원래 높이 사용 (높이 추가하지 않음)
-            const waypointAltitude = waypoint.location.altitude || 10;
+            // 웨이포인트 원래 높이 사용 (altitude는 waypoint 객체의 직속 속성)
+            const waypointAltitude = waypoint.altitude || 10;
 
             // 마커 높이값만 로그 출력
             console.log(
@@ -892,7 +892,7 @@ export default function VWorldMaps({
                 waypoint.location.longitude &&
                 waypoint.location.latitude
               ) {
-                const waypointAltitude = waypoint.location.altitude || 10;
+                const waypointAltitude = waypoint.altitude || 10;
 
                 // 카메라 이동 시도 (비동기)
                 const moveCameraToClickedWaypoint = async () => {

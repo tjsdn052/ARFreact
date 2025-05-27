@@ -81,19 +81,14 @@ function BuildingCard({ building }) {
 
         {/* 균열 종류 태그 */}
         <div className={styles.crackTags}>
-          {building.crackTypes &&
+          {building.crackTypes && building.crackTypes.length > 0 ? (
             building.crackTypes.map((type, index) => (
               <span key={index} className={styles.crackTag}>
                 {type}
               </span>
-            ))}
-          {(!building.crackTypes || building.crackTypes.length === 0) && (
-            <>
-              <span className={styles.crackTag}>가로형</span>
-              <span className={styles.crackTag}>세로형</span>
-              <span className={styles.crackTag}>경사형</span>
-              <span className={styles.crackTag}>망상형</span>
-            </>
+            ))
+          ) : (
+            <div className={styles.emptyCrackArea}></div>
           )}
         </div>
       </div>
