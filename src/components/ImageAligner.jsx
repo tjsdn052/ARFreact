@@ -206,8 +206,9 @@ const ImageAligner = forwardRef(function ImageAligner(
         const { img1DataBuffer, img1Width, img1Height, img2DataBuffer, img2Width, img2Height } = e.data;
     
         let mat1, mat2, gray1, gray2, orb, kp1, des1, kp2, des2;
-        let matchesVec, pts1, pts2, homography, aligned, grayAligned, maskAligned;
-        let diff, blurred, mask, result;
+        let matchesVec, pts1, pts2, homography, aligned;
+        let img1_crop, aligned_crop, mask_overlap;
+        let diff, gray_diff, blurred, mask_diff, mask_filtered, highlight;
     
         try {
           const img1Array = new Uint8ClampedArray(img1DataBuffer);
@@ -245,7 +246,7 @@ const ImageAligner = forwardRef(function ImageAligner(
             }
           }
     
-          if (pts1.length < 8) throw new Error("Not enough good matches.");
+          if (pts1.length < 4) throw new Error("Not enough good matches.");
     
           const pts1Mat = cv.matFromArray(pts1.length / 2, 1, cv.CV_32FC2, pts1);
           const pts2Mat = cv.matFromArray(pts2.length / 2, 1, cv.CV_32FC2, pts2);
@@ -254,42 +255,70 @@ const ImageAligner = forwardRef(function ImageAligner(
           aligned = new cv.Mat();
           cv.warpPerspective(mat2, aligned, homography, new cv.Size(mat1.cols, mat1.rows));
     
-          grayAligned = new cv.Mat();
-          cv.cvtColor(aligned, grayAligned, cv.COLOR_RGBA2GRAY);
+          const maskAlignedFull = new cv.Mat();
+          const alignedGray = new cv.Mat();
+          cv.cvtColor(aligned, alignedGray, cv.COLOR_RGBA2GRAY);
+          cv.threshold(alignedGray, maskAlignedFull, 1, 255, cv.THRESH_BINARY);
     
-          maskAligned = new cv.Mat();
-          cv.threshold(grayAligned, maskAligned, 1, 255, cv.THRESH_BINARY); // 정합된 부분만 255
+          const contours = new cv.MatVector();
+          const hierarchy = new cv.Mat();
+          cv.findContours(maskAlignedFull, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
     
-          diff = new cv.Mat();
-          cv.absdiff(gray1, grayAligned, diff);
+          let x = 0, y = 0, width = mat1.cols, height = mat1.rows;
+          if (contours.size() > 0) {
+            const rect = cv.boundingRect(contours.get(0));
+            x = rect.x; y = rect.y; width = rect.width; height = rect.height;
+          }
+    
+          img1_crop = mat1.roi(new cv.Rect(x, y, width, height));
+          aligned_crop = aligned.roi(new cv.Rect(x, y, width, height));
+          mask_overlap = maskAlignedFull.roi(new cv.Rect(x, y, width, height));
+    
+          const diffMat = new cv.Mat();
+          cv.absdiff(img1_crop, aligned_crop, diffMat);
+          gray_diff = new cv.Mat();
+          cv.cvtColor(diffMat, gray_diff, cv.COLOR_RGBA2GRAY);
     
           blurred = new cv.Mat();
-          cv.GaussianBlur(diff, blurred, new cv.Size(5, 5), 0);
+          cv.GaussianBlur(gray_diff, blurred, new cv.Size(5, 5), 0);
     
-          mask = new cv.Mat();
-          cv.threshold(blurred, mask, 40, 255, cv.THRESH_BINARY);
+          mask_diff = new cv.Mat();
+          cv.threshold(blurred, mask_diff, 60, 255, cv.THRESH_BINARY);
     
-          result = aligned.clone(); // 원본(aligned)을 기반으로
+          const kernel = cv.Mat.ones(5, 5, cv.CV_8U);
+          cv.morphologyEx(mask_diff, mask_diff, cv.MORPH_CLOSE, kernel, new cv.Point(-1, -1), 2);
     
-          for (let y = 0; y < mask.rows; y++) {
-            for (let x = 0; x < mask.cols; x++) {
-              const isDiff = mask.ucharPtr(y, x)[0] === 255;
-              const isInside = maskAligned.ucharPtr(y, x)[0] === 255;
-              if (isDiff && isInside) {
-                const pixel = result.ucharPtr(y, x);
-                pixel[0] = 255; pixel[1] = 0; pixel[2] = 0; // 빨간색 표시
+          const allContours = new cv.MatVector();
+          const _ = new cv.Mat();
+          cv.findContours(mask_diff, allContours, _, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+          mask_filtered = cv.Mat.zeros(mask_diff.rows, mask_diff.cols, cv.CV_8U);
+          for (let i = 0; i < allContours.size(); ++i) {
+            if (cv.contourArea(allContours.get(i)) > 800) {
+              cv.drawContours(mask_filtered, allContours, i, new cv.Scalar(255), -1);
+            }
+          }
+    
+          cv.bitwise_and(mask_filtered, mask_overlap, mask_filtered);
+    
+          highlight = img1_crop.clone();
+          for (let r = 0; r < highlight.rows; r++) {
+            for (let c = 0; c < highlight.cols; c++) {
+              if (mask_filtered.ucharPtr(r, c)[0] === 255) {
+                const pixel = highlight.ucharPtr(r, c);
+                pixel[0] = 255; pixel[1] = 0; pixel[2] = 0;
               }
             }
           }
     
-          const output = new ImageData(new Uint8ClampedArray(result.data), result.cols, result.rows);
-          self.postMessage({ success: true, result: { width: result.cols, height: result.rows, data: output.data.buffer } }, [output.data.buffer]);
+          const output = new ImageData(new Uint8ClampedArray(highlight.data), highlight.cols, highlight.rows);
+          self.postMessage({ success: true, result: { width: highlight.cols, height: highlight.rows, data: output.data.buffer } }, [output.data.buffer]);
     
         } catch (err) {
           self.postMessage({ success: false, error: err.message });
         } finally {
           [mat1, mat2, gray1, gray2, des1, des2, kp1, kp2, matchesVec, homography,
-           aligned, grayAligned, maskAligned, diff, blurred, mask, result].forEach(m => { if (m) m.delete(); });
+           aligned, img1_crop, aligned_crop, mask_overlap, diff, gray_diff, blurred,
+           mask_diff, mask_filtered, highlight].forEach(m => { if (m) m.delete?.(); });
           if (orb) orb.delete();
         }
       };
