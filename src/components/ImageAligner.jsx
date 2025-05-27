@@ -190,7 +190,6 @@ const ImageAligner = forwardRef(function ImageAligner(
         workerRef.current.terminate();
       }
 
-      // --- 웹 워커 코드 시작 ---
       const workerCode = `
       importScripts('https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.7.0-release.1/dist/opencv.js');
     
@@ -209,6 +208,7 @@ const ImageAligner = forwardRef(function ImageAligner(
         let matchesVec, pts1, pts2, homography, aligned;
         let img1_crop, aligned_crop, mask_overlap;
         let diff, gray_diff, blurred, mask_diff, mask_filtered, highlight;
+        let fallback = false;
     
         try {
           const img1Array = new Uint8ClampedArray(img1DataBuffer);
@@ -228,8 +228,6 @@ const ImageAligner = forwardRef(function ImageAligner(
           orb.detectAndCompute(gray1, new cv.Mat(), kp1, des1);
           orb.detectAndCompute(gray2, new cv.Mat(), kp2, des2);
     
-          if (des1.empty() || des2.empty()) throw new Error("No descriptors found.");
-    
           const bf = new cv.BFMatcher(cv.NORM_HAMMING, false);
           matchesVec = new cv.DMatchVectorVector();
           bf.knnMatch(des2, des1, matchesVec, 2);
@@ -246,14 +244,17 @@ const ImageAligner = forwardRef(function ImageAligner(
             }
           }
     
-          if (pts1.length < 4) throw new Error("Not enough good matches.");
+          if (pts1.length >= 4) {
+            const pts1Mat = cv.matFromArray(pts1.length / 2, 1, cv.CV_32FC2, pts1);
+            const pts2Mat = cv.matFromArray(pts2.length / 2, 1, cv.CV_32FC2, pts2);
+            homography = cv.findHomography(pts2Mat, pts1Mat, cv.RANSAC);
     
-          const pts1Mat = cv.matFromArray(pts1.length / 2, 1, cv.CV_32FC2, pts1);
-          const pts2Mat = cv.matFromArray(pts2.length / 2, 1, cv.CV_32FC2, pts2);
-          homography = cv.findHomography(pts2Mat, pts1Mat, cv.RANSAC);
-    
-          aligned = new cv.Mat();
-          cv.warpPerspective(mat2, aligned, homography, new cv.Size(mat1.cols, mat1.rows));
+            aligned = new cv.Mat();
+            cv.warpPerspective(mat2, aligned, homography, new cv.Size(mat1.cols, mat1.rows));
+          } else {
+            fallback = true;
+            aligned = mat2.clone();
+          }
     
           const maskAlignedFull = new cv.Mat();
           const alignedGray = new cv.Mat();
@@ -298,7 +299,7 @@ const ImageAligner = forwardRef(function ImageAligner(
             }
           }
     
-          cv.bitwise_and(mask_filtered, mask_overlap, mask_filtered);
+          if (!fallback) cv.bitwise_and(mask_filtered, mask_overlap, mask_filtered);
     
           highlight = img1_crop.clone();
           for (let r = 0; r < highlight.rows; r++) {
@@ -311,7 +312,7 @@ const ImageAligner = forwardRef(function ImageAligner(
           }
     
           const output = new ImageData(new Uint8ClampedArray(highlight.data), highlight.cols, highlight.rows);
-          self.postMessage({ success: true, result: { width: highlight.cols, height: highlight.rows, data: output.data.buffer } }, [output.data.buffer]);
+          self.postMessage({ success: true, result: { width: highlight.cols, height: highlight.rows, data: output.data.buffer }, fallback }, [output.data.buffer]);
     
         } catch (err) {
           self.postMessage({ success: false, error: err.message });
