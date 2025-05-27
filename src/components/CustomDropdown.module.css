@@ -1,0 +1,52 @@
+.dropdown {
+  position: relative;
+  width: 200px;
+  font-weight: medium;
+  font-size: 0.95rem;
+}
+
+.selected {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background-color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  height: 56px;
+}
+
+.arrow {
+  margin-left: 8px;
+  width: 16px;
+  height: 16px;
+}
+
+.menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.25rem 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+
+  list-style: none; /* ← 이 부분 추가 */
+  margin: 0; /* ← 기본 여백 제거 */
+  padding-left: 0; /* ← 들여쓰기 제거 */
+}
+
+.item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.item:hover {
+  background-color: #f3f3ff;
+}

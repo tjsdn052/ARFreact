@@ -1,0 +1,448 @@
+/* 전체 페이지 컨테이너 */
+.container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #f7f7fb;
+  min-height: 100vh;
+  font-family: "Pretendard", sans-serif;
+}
+
+a,
+a:hover,
+a:active,
+a:visited {
+  color: #ffffff !important; /* 원하는 색상 */
+  text-decoration: none !important;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* 좌측 사이드바 */
+.sidebar {
+  width: 240px;
+  background-color: #333;
+  color: white;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+/* 본문 영역 */
+.mainContent {
+  flex: 1;
+  padding: 2rem;
+}
+
+/* 상단 제목 */
+.pageTitle {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+  color: #000000;
+}
+
+/* 요약 카드 그리드 */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* 요약 카드 개별 스타일 */
+.summaryCard {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #000000;
+  font-family: "Pretendard", sans-serif;
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cardTitle {
+  font-size: 0.95rem;
+  color: #000000;
+  margin-bottom: 0.3rem;
+}
+
+/* 값은 세로 가운데 */
+.cardValue {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #000000;
+
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: center;
+}
+
+/* 검색 및 버튼 영역 */
+.controlBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.buttonGroup button:not(.addBuildingBtn) {
+  background-color: #ffffff;
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #777;
+  border: 1px solid #777;
+}
+
+.buttonGroup button:not(.addBuildingBtn):hover {
+  background-color: #f5f7ff;
+  border-color: #7e41ff;
+  color: #7e41ff;
+}
+
+/* 건물 추가 버튼 전용 스타일 */
+.addBuildingBtn {
+  background-color: #7e41ff;
+  color: white;
+  border: 1px solid #7e41ff;
+  padding: 1rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+}
+/* 건물 카드 그리드 */
+.buildingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  margin-top: 2.5rem;
+  gap: 2.5rem 1.25rem;
+}
+
+/* 건물 카드 */
+.buildingCard {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  transition: 0.2s;
+}
+
+/* 상단 정보 영역 */
+.infoTop {
+  padding: 1.3rem 1.3rem 1rem;
+}
+
+.buildingTitle {
+  font-size: 1.3rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
+  color: #000000;
+}
+
+.address {
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: #777;
+  line-height: 2;
+}
+
+/* 이미지 placeholder */
+.imagePlaceholder {
+  height: 200px;
+  background-color: #ddd;
+  color: #777;
+  margin: 0 1rem 1rem 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.buildingImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* 상태 태그 */
+.status {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.statusTag {
+  background-color: #f1f1f5;
+  color: #000000;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* 하단 정보 영역 */
+.infoBottom {
+  padding: 1rem;
+}
+
+.roomRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.roomText {
+  font-size: 0.85rem;
+  color: #000000;
+}
+
+.metrics {
+  font-size: 0.95rem;
+  color: #000000;
+  line-height: 1.8;
+}
+
+/* 호실 추가 버튼 (유일하게 보라색 유지) */
+.addBtn {
+  background-color: #f5f7ff;
+  border: 1px solid #7e41ff;
+  color: #7e41ff;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.metricRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboardBtn {
+  margin-left: auto;
+  margin-right: 0.3rem;
+  background-color: #7e41ff;
+  color: white;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 0.2s ease;
+  text-decoration: none;
+}
+
+.searchWrapper {
+  flex: 1;
+  min-width: 400px;
+  width: auto;
+  max-width: none;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 10px; /* pill shape */
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.1);
+  padding: 0.3rem 0.5rem 0.3rem 1.2rem;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1.1rem;
+  color: #333;
+  padding: 0;
+  height: 100%;
+}
+
+.searchInput::placeholder {
+  color: #c0c7d6;
+  opacity: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 0.8rem;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.searchButton {
+  width: 40px;
+  height: 40px;
+  background: #7e41ff;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  outline: 0;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+}
+.searchButton:focus {
+  outline: none;
+}
+
+.searchButton:focus-visible {
+  outline: none;
+}
+
+.searchButton svg {
+  color: #fff;
+  width: 20px;
+  height: 20px;
+}
+
+.rankList {
+  font-family: "Pretendard", sans-serif;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #000;
+  font-weight: 500;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.rankList li {
+  text-align: left;
+}
+
+.rankTable {
+  width: 100%;
+  font-family: inherit;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  color: #000;
+}
+
+.rankTable th,
+.rankTable td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.rankTable thead {
+  border-bottom: 1px solid #ccc;
+  font-weight: bold;
+  color: #777;
+}
+
+.rankTable td {
+  font-weight: 500;
+}
+
+/* 태그 */
+.crackTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.crackTag {
+  background-color: #f3f3ff;
+  color: #7e41ff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+/* 로딩 및 에러 상태 */
+.loading,
+.error {
+  text-align: center;
+  padding: 50px;
+  width: 100%;
+  color: #666;
+  font-size: 18px;
+}
+
+.error {
+  color: #e53e3e;
+}
+
+/* 검색 결과 없음 */
+.noResults {
+  text-align: center;
+  padding: 40px;
+  width: 100%;
+  color: #777;
+  grid-column: 1 / -1;
+}
+
+/* 활성화 필터 */
+.activeFilter {
+  background-color: #7e41ff !important;
+  color: white !important;
+  border-color: #7e41ff !important;
+}
+
+.sortDropdownWrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sortSelect {
+  padding: 1rem 1rem;
+  border: none;
+  border-radius: 8px; /* pill shape */
+  background-color: #e3e3eb; /* light gray */
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  appearance: none; /* remove default arrow */
+  background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%23666' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  cursor: pointer;
+}

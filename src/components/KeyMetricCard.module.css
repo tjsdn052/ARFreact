@@ -1,0 +1,156 @@
+.card {
+  background-color: #f9f9fb;
+  box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  border-radius: 10px;
+}
+
+.title {
+  color: #000000;
+  font-family: Pretendard;
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  letter-spacing: -0.023rem;
+  margin: 0;
+}
+
+.inspectionDate {
+  position: absolute;
+  top: 1rem;
+  left: 0.85rem;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+  font-family: Pretendard;
+}
+
+.metricsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem;
+}
+
+.metricItem {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  background-color: white;
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.metricIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 1rem;
+  background-color: #8800ff;
+  border-radius: 50%;
+  color: white;
+  flex-shrink: 0;
+}
+
+.metricIcon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.metricContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.metricValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+}
+
+.unit {
+  font-size: 0.875rem;
+  margin-left: 0.25rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.metricLabel {
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 0.125rem;
+  white-space: nowrap;
+}
+
+.increase {
+  color: #dc3545;
+}
+
+.decrease {
+  color: #28a745;
+}
+
+.lastInspection {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: right;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eee;
+  margin-top: 0.75rem;
+}
+
+.label {
+  font-weight: 600;
+  color: #333;
+}
+
+.loading,
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .metricItem {
+    padding: 0.625rem;
+  }
+
+  .metricIcon {
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-right: 0.875rem;
+  }
+
+  .metricIcon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .metricValue {
+    font-size: 1.5rem;
+  }
+}

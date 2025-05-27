@@ -1,0 +1,155 @@
+/* CrackDetail.module.css */
+.container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+  background-color: #f7f7fb;
+}
+
+.contentContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  width: calc(100% - 4.75rem);
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin-right: 0;
+}
+
+.main {
+  flex: 1;
+  padding: 0 20px 0 0;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: 1fr 0.5fr 0.5fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 15px;
+  height: calc(100vh - 100px);
+
+  opacity: 0;
+  animation: fadeInUp 0.5s ease forwards;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.gridItem {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(-7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sidebar {
+  width: auto;
+  height: 100%;
+  border: 1px solid #000;
+  background: #131739;
+  box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+
+.footerText {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  padding: 10px;
+}
+
+.disclaimerText {
+  position: absolute;
+  bottom: 8px;
+  right: 20px;
+  max-width: 100%;
+  text-align: center;
+  color: #7e41ff;
+  font-family: Pretendard;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 160%;
+  padding: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.warningIcon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 60px);
+  font-size: 18px;
+  color: #666;
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 60px);
+  font-size: 18px;
+  color: #e53e3e;
+}
+
+.buildingTitle {
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.buildingTitle h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.buildingTitle p {
+  margin: 5px 0 0 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.buildingSelector {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
