@@ -90,16 +90,18 @@ export default function ImageCard({ buildingId, buildingData }) {
       building.waypoints.forEach((waypoint) => {
         if (waypoint.cracks && waypoint.cracks.length > 0) {
           waypoint.cracks.forEach((crack) => {
-            // 날짜 정보 추가
+            // 날짜 정보 추가 (타임스탬프에서 날짜 부분만 추출)
             if (crack.timestamp) {
-              dateSet.add(crack.timestamp);
+              const dateOnly = crack.timestamp.split("T")[0]; // YYYY-MM-DD 부분만 추출
+              dateSet.add(dateOnly);
             }
 
             // 이미지 정보 추가
             if (crack.imageUrl) {
               images.push({
                 url: crack.imageUrl,
-                date: crack.timestamp,
+                date: crack.timestamp ? crack.timestamp.split("T")[0] : null, // 날짜 부분만 저장
+                fullTimestamp: crack.timestamp, // 전체 타임스탬프도 보관
                 widthMm: crack.widthMm,
                 pointLabel: waypoint.label || `웨이포인트 ${waypoint.id}`,
               });

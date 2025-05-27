@@ -97,46 +97,20 @@ export default function VWorldMaps({
                   )}m`
                 );
 
-                // 1단계: 높은 고도에서 위치 이동 (부드러운 접근)
-                const intermediateHeight = finalCameraHeight + 50; // 목표 지점보다 50m 높게
-                const intermediatePosition =
-                  window.Cesium.Cartesian3.fromDegrees(
-                    waypoint.location.longitude,
-                    waypoint.location.latitude,
-                    intermediateHeight
-                  );
-
-                await new Promise((resolve) => {
-                  cesiumViewerRef.current.camera.flyTo({
-                    destination: intermediatePosition,
-                    orientation: {
-                      heading: window.Cesium.Math.toRadians(0),
-                      pitch: window.Cesium.Math.toRadians(-30), // 첫 번째 단계에서는 덜 기울임
-                      roll: 0,
-                    },
-                    duration: 1.0, // 첫 번째 이동은 1초
-                    complete: resolve,
-                  });
-                });
-
-                // 2단계: 최종 위치로 부드럽게 하강
-                const finalPosition = window.Cesium.Cartesian3.fromDegrees(
+                const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
                   waypoint.location.longitude,
                   waypoint.location.latitude,
                   finalCameraHeight
                 );
 
-                await new Promise((resolve) => {
-                  cesiumViewerRef.current.camera.flyTo({
-                    destination: finalPosition,
-                    orientation: {
-                      heading: window.Cesium.Math.toRadians(0),
-                      pitch: window.Cesium.Math.toRadians(-90), // 최종적으로는 수직으로
-                      roll: 0,
-                    },
-                    duration: 0.8, // 두 번째 이동은 0.8초
-                    complete: resolve,
-                  });
+                cesiumViewerRef.current.camera.flyTo({
+                  destination: cameraPosition,
+                  orientation: {
+                    heading: window.Cesium.Math.toRadians(0),
+                    pitch: window.Cesium.Math.toRadians(-90), // 항상 수직 내려다보기
+                    roll: 0,
+                  },
+                  duration: 2.0, // 부드러운 이동을 위한 2초 지속 시간
                 });
 
                 // 웨이포인트 이름도 업데이트
@@ -762,45 +736,20 @@ export default function VWorldMaps({
               )}m`
             );
 
-            // 1단계: 높은 고도에서 위치 이동 (부드러운 접근)
-            const intermediateHeight = finalCameraHeight + 50; // 목표 지점보다 50m 높게
-            const intermediatePosition = window.Cesium.Cartesian3.fromDegrees(
-              selectedWaypointCoords.longitude,
-              selectedWaypointCoords.latitude,
-              intermediateHeight
-            );
-
-            await new Promise((resolve) => {
-              cesiumViewerRef.current.camera.flyTo({
-                destination: intermediatePosition,
-                orientation: {
-                  heading: window.Cesium.Math.toRadians(0),
-                  pitch: window.Cesium.Math.toRadians(-30), // 첫 번째 단계에서는 덜 기울임
-                  roll: 0,
-                },
-                duration: 1.0, // 첫 번째 이동은 1초
-                complete: resolve,
-              });
-            });
-
-            // 2단계: 최종 위치로 부드럽게 하강
-            const finalPosition = window.Cesium.Cartesian3.fromDegrees(
+            const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
               selectedWaypointCoords.longitude,
               selectedWaypointCoords.latitude,
               finalCameraHeight
             );
 
-            await new Promise((resolve) => {
-              cesiumViewerRef.current.camera.flyTo({
-                destination: finalPosition,
-                orientation: {
-                  heading: window.Cesium.Math.toRadians(0),
-                  pitch: window.Cesium.Math.toRadians(-90), // 최종적으로는 수직으로
-                  roll: 0,
-                },
-                duration: 0.8, // 두 번째 이동은 0.8초
-                complete: resolve,
-              });
+            cesiumViewerRef.current.camera.flyTo({
+              destination: cameraPosition,
+              orientation: {
+                heading: window.Cesium.Math.toRadians(0),
+                pitch: window.Cesium.Math.toRadians(-90), // 항상 수직 내려다보기
+                roll: 0,
+              },
+              duration: 2.0, // 부드러운 이동을 위한 2초 지속 시간
             });
 
             console.log(
@@ -834,45 +783,20 @@ export default function VWorldMaps({
               )}m - ${ELEVATION_OFFSET}m = ${finalCameraHeight.toFixed(2)}m`
             );
 
-            // 1단계: 높은 고도에서 위치 이동 (부드러운 접근)
-            const intermediateHeight = finalCameraHeight + 80; // 건물은 더 높게 (80m 높게)
-            const intermediatePosition = window.Cesium.Cartesian3.fromDegrees(
-              building.location.longitude,
-              building.location.latitude,
-              intermediateHeight
-            );
-
-            await new Promise((resolve) => {
-              cesiumViewerRef.current.camera.flyTo({
-                destination: intermediatePosition,
-                orientation: {
-                  heading: window.Cesium.Math.toRadians(0),
-                  pitch: window.Cesium.Math.toRadians(-20), // 건물은 더 넓은 시야각
-                  roll: 0,
-                },
-                duration: 1.2, // 첫 번째 이동은 1.2초
-                complete: resolve,
-              });
-            });
-
-            // 2단계: 최종 위치로 부드럽게 하강
-            const finalPosition = window.Cesium.Cartesian3.fromDegrees(
+            const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
               building.location.longitude,
               building.location.latitude,
               finalCameraHeight
             );
 
-            await new Promise((resolve) => {
-              cesiumViewerRef.current.camera.flyTo({
-                destination: finalPosition,
-                orientation: {
-                  heading: window.Cesium.Math.toRadians(0),
-                  pitch: window.Cesium.Math.toRadians(-60), // 건물은 덜 수직으로
-                  roll: 0,
-                },
-                duration: 1.0, // 두 번째 이동은 1초
-                complete: resolve,
-              });
+            cesiumViewerRef.current.camera.flyTo({
+              destination: cameraPosition,
+              orientation: {
+                heading: window.Cesium.Math.toRadians(0),
+                pitch: window.Cesium.Math.toRadians(-90), // 항상 수직 내려다보기
+                roll: 0,
+              },
+              duration: 2.0, // 부드러운 이동을 위한 2초 지속 시간
             });
 
             console.log("건물 위치로 카메라 이동 완료");
@@ -969,7 +893,7 @@ export default function VWorldMaps({
               ) {
                 const waypointAltitude = waypoint.altitude || 10;
 
-                // 카메라 이동 시도 (비동기 - 두 단계 이동)
+                // 카메라 이동 시도 (비동기)
                 const moveCameraToClickedWaypoint = async () => {
                   try {
                     // Google Elevation API로 지형 고도 가져오기
@@ -992,46 +916,20 @@ export default function VWorldMaps({
                       )}m`
                     );
 
-                    // 1단계: 높은 고도에서 위치 이동 (부드러운 접근)
-                    const intermediateHeight = finalCameraHeight + 50; // 목표 지점보다 50m 높게
-                    const intermediatePosition =
-                      window.Cesium.Cartesian3.fromDegrees(
-                        waypoint.location.longitude,
-                        waypoint.location.latitude,
-                        intermediateHeight
-                      );
-
-                    await new Promise((resolve) => {
-                      cesiumViewerRef.current.camera.flyTo({
-                        destination: intermediatePosition,
-                        orientation: {
-                          heading: window.Cesium.Math.toRadians(0),
-                          pitch: window.Cesium.Math.toRadians(-30), // 첫 번째 단계에서는 덜 기울임
-                          roll: 0,
-                        },
-                        duration: 1.0, // 첫 번째 이동은 1초
-                        complete: resolve,
-                      });
-                    });
-
-                    // 2단계: 최종 위치로 부드럽게 하강
-                    const finalPosition = window.Cesium.Cartesian3.fromDegrees(
+                    const cameraPosition = window.Cesium.Cartesian3.fromDegrees(
                       waypoint.location.longitude,
                       waypoint.location.latitude,
                       finalCameraHeight
                     );
 
-                    await new Promise((resolve) => {
-                      cesiumViewerRef.current.camera.flyTo({
-                        destination: finalPosition,
-                        orientation: {
-                          heading: window.Cesium.Math.toRadians(0),
-                          pitch: window.Cesium.Math.toRadians(-90), // 최종적으로는 수직으로
-                          roll: 0,
-                        },
-                        duration: 0.8, // 두 번째 이동은 0.8초
-                        complete: resolve,
-                      });
+                    cesiumViewerRef.current.camera.flyTo({
+                      destination: cameraPosition,
+                      orientation: {
+                        heading: window.Cesium.Math.toRadians(0),
+                        pitch: window.Cesium.Math.toRadians(-90), // 항상 수직 내려다보기
+                        roll: 0,
+                      },
+                      duration: 2.0, // 부드러운 이동을 위한 2초 지속 시간
                     });
 
                     console.log(
