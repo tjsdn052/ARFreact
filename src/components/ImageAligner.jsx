@@ -179,27 +179,27 @@ const ImageAligner = forwardRef(function ImageAligner(
         let Module = {
           onRuntimeInitialized() {
             try {
-              // 1. 이미지 초기화
+              // --- 1. 이미지 초기화 ---
               const img1Mat = cv.matFromImageData(new ImageData(new Uint8ClampedArray(img1Data), width, height));
               const img2Mat = cv.matFromImageData(new ImageData(new Uint8ClampedArray(img2Data), width, height));
       
-              // 2. Grayscale 변환
+              // --- 2. Grayscale 변환 ---
               const gray1 = new cv.Mat();
               const gray2 = new cv.Mat();
               cv.cvtColor(img1Mat, gray1, cv.COLOR_RGBA2GRAY);
               cv.cvtColor(img2Mat, gray2, cv.COLOR_RGBA2GRAY);
       
-              // 3. SIFT 특징 추출
-              const sift = new cv.SIFT();
+              // --- 3. ORB 특징점 검출 및 디스크립터 계산 ---
+              const orb = new cv.ORB();
               const kp1 = new cv.KeyPointVector();
               const kp2 = new cv.KeyPointVector();
               const des1 = new cv.Mat();
               const des2 = new cv.Mat();
-              sift.detectAndCompute(gray1, new cv.Mat(), kp1, des1);
-              sift.detectAndCompute(gray2, new cv.Mat(), kp2, des2);
+              orb.detectAndCompute(gray1, new cv.Mat(), kp1, des1);
+              orb.detectAndCompute(gray2, new cv.Mat(), kp2, des2);
       
-              // 4. 매칭 및 호모그래피 계산
-              const bf = new cv.BFMatcher(cv.NORM_L2, false);
+              // --- 4. BFMatcher (Hamming 거리)로 매칭 ---
+              const bf = new cv.BFMatcher(cv.NORM_HAMMING, false);
               const matches = new cv.DMatchVectorVector();
               bf.knnMatch(des2, des1, matches, 2);
       
@@ -212,60 +212,53 @@ const ImageAligner = forwardRef(function ImageAligner(
                 }
               }
       
-              if (good.length < 4) {
-                throw new Error("호모그래피 계산을 위한 매칭 부족");
-              }
+              if (good.length < 4) throw new Error("호모그래피 계산을 위한 매칭 부족");
       
               const pts1 = cv.matFromArray(good.length, 1, cv.CV_32FC2, [].concat(...good.map(([i, _]) => [kp1.get(i).pt.x, kp1.get(i).pt.y])));
               const pts2 = cv.matFromArray(good.length, 1, cv.CV_32FC2, [].concat(...good.map(([_, j]) => [kp2.get(j).pt.x, kp2.get(j).pt.y])));
               const M = cv.findHomography(pts2, pts1, cv.RANSAC, 3.0);
       
-              // 5. 이미지 정렬
+              // --- 5. 정렬 ---
               const aligned = new cv.Mat();
               const dsize = new cv.Size(width, height);
               cv.warpPerspective(img2Mat, aligned, M, dsize, cv.INTER_CUBIC);
       
-              // 6. 차이 계산 및 강조
+              // --- 6. 차이 및 강조 처리 ---
               const diff = new cv.Mat();
               cv.absdiff(img1Mat, aligned, diff);
               const grayDiff = new cv.Mat();
               cv.cvtColor(diff, grayDiff, cv.COLOR_RGBA2GRAY);
               const blurred = new cv.Mat();
               cv.GaussianBlur(grayDiff, blurred, new cv.Size(5, 5), 0);
-      
               const mask = new cv.Mat();
               cv.threshold(blurred, mask, 60, 255, cv.THRESH_BINARY);
-      
               const kernel = cv.Mat.ones(5, 5, cv.CV_8U);
               cv.morphologyEx(mask, mask, cv.MORPH_CLOSE, kernel);
       
-              // 결과 덮어쓰기
               for (let y = 0; y < mask.rows; y++) {
                 for (let x = 0; x < mask.cols; x++) {
                   if (mask.ucharPtr(y, x)[0] > 0) {
-                    img1Mat.ucharPtr(y, x)[0] = 0;   // R
-                    img1Mat.ucharPtr(y, x)[1] = 0;   // G
-                    img1Mat.ucharPtr(y, x)[2] = 255; // B
-                    img1Mat.ucharPtr(y, x)[3] = 255; // A
+                    img1Mat.ucharPtr(y, x)[0] = 0;
+                    img1Mat.ucharPtr(y, x)[1] = 0;
+                    img1Mat.ucharPtr(y, x)[2] = 255;
+                    img1Mat.ucharPtr(y, x)[3] = 255;
                   }
                 }
               }
       
-              // 반환
               self.postMessage({
                 success: true,
                 result: {
                   width: img1Mat.cols,
                   height: img1Mat.rows,
-                  data: img1Mat.data.buffer
-                }
+                  data: img1Mat.data.buffer,
+                },
               }, [img1Mat.data.buffer]);
       
               // 메모리 해제
-              img1Mat.delete(); img2Mat.delete(); aligned.delete(); gray1.delete(); gray2.delete();
-              kp1.delete(); kp2.delete(); des1.delete(); des2.delete(); matches.delete();
-              diff.delete(); grayDiff.delete(); blurred.delete(); mask.delete(); kernel.delete(); M.delete();
-              pts1.delete(); pts2.delete(); sift.delete(); bf.delete();
+              img1Mat.delete(); img2Mat.delete(); aligned.delete();
+              gray1.delete(); gray2.delete(); diff.delete(); grayDiff.delete(); blurred.delete(); mask.delete(); kernel.delete();
+              kp1.delete(); kp2.delete(); des1.delete(); des2.delete(); matches.delete(); M.delete(); pts1.delete(); pts2.delete(); orb.delete(); bf.delete();
       
             } catch (err) {
               self.postMessage({ success: false, error: err.message });
