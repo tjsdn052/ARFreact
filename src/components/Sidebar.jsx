@@ -28,7 +28,7 @@ export default function Sidebar() {
       })
       .catch((err) => {
         console.error("건물 목록 불러오기 실패:", err);
-        // 에러 발생 시 기본값으로 27 사용
+        // 에러 발생 시 기본값으로 27 사용ㅇㅇㅇㅇㅇㅇㅇㅇㅇ
         setFirstBuildingId(28);
       });
   }, []);
