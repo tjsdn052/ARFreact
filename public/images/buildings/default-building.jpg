@@ -1,0 +1,42 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="buildingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e3f2fd;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bbdefb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 배경 -->
+  <rect width="300" height="200" fill="url(#buildingGradient)"/>
+  
+  <!-- 건물 실루엣 -->
+  <rect x="50" y="80" width="60" height="100" fill="#546e7a" opacity="0.8"/>
+  <rect x="120" y="60" width="60" height="120" fill="#607d8b" opacity="0.8"/>
+  <rect x="190" y="90" width="60" height="90" fill="#546e7a" opacity="0.8"/>
+  
+  <!-- 창문들 -->
+  <rect x="60" y="90" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="75" y="90" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="90" y="90" width="8" height="12" fill="#fff" opacity="0.7"/>
+  
+  <rect x="60" y="110" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="75" y="110" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="90" y="110" width="8" height="12" fill="#fff" opacity="0.7"/>
+  
+  <rect x="130" y="70" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="145" y="70" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="160" y="70" width="8" height="12" fill="#fff" opacity="0.7"/>
+  
+  <rect x="130" y="90" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="145" y="90" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="160" y="90" width="8" height="12" fill="#fff" opacity="0.7"/>
+  
+  <rect x="200" y="100" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="215" y="100" width="8" height="12" fill="#fff" opacity="0.7"/>
+  <rect x="230" y="100" width="8" height="12" fill="#fff" opacity="0.7"/>
+  
+  <!-- 텍스트 -->
+  <text x="150" y="40" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#37474f">
+    건물 이미지
+  </text>
+</svg> 

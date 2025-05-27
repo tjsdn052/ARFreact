@@ -26,7 +26,7 @@ function BuildingCard({ building }) {
         .toLowerCase()
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "");
-      const imagePath = `images/${building.name}.jpeg`;
+      const imagePath = `images/${building.name}.png`;
       console.log(
         `건물: ${building.name} -> 파일명: ${fileName} -> 경로: ${imagePath}`
       );
